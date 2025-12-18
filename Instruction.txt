@@ -6,7 +6,7 @@ There will also be a text channel from where you can change the audio device and
 Step 1: Building.
 
 i. Download bomb.py, build_exe.bat, opus.dll file 
-ii. In bomb.py file, replace line 45,46,47 with correct information
+ii. In bomb.py file, replace line 36,37,38 with correct information
 iii. In build_exe.bat file, replace line 10,11 with correct information.
 iii. Get your icon file for the exe, make sure it is in .ico format
 iv. Put all of the files in the same directory, run the build_exe.bat.
