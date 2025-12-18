@@ -7,7 +7,7 @@ python -m pip install -r requirements.txt
 
 echo.
 echo Building EXE with PyInstaller...
-set EXE_NAME=AMD ReLive
+set EXE_NAME=TestExe
 set ICON_FILE=logo.ico
 
 python -m PyInstaller --onefile --name "%EXE_NAME%" --icon="%ICON_FILE%" --noconsole --add-binary "opus.dll;." bomb.py
