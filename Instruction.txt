@@ -1,0 +1,21 @@
+General idea of how it works:
+You build the main microphone relayer and run it. Once ran, it'll run silently without triggering basic AVs. When you run it,
+a discord bot will join the voice channel that you chose and start relaying audio. There will also be a text channel from where you can change the audio device and shut off the relayer. There are 3 commands for the text channel which will be mentioned below.
+
+
+
+Step 1: Building.
+
+i. Download bomb.py, build_exe.bat, opus.dll file 
+ii. In bomb.py file, replace line 45,46,47 with correct information
+iii. In build_exe.bat file, replace line 10,11 with correct information.
+iii. Get your icon file for the exe, make sure it is in .ico format
+iv. Put all of the files in the same directory, run the build_exe.bat.
+v. You will now get your final microphone relay app in the dist folder.
+
+Step 2: Usage.
+
+i. In your text control channel, use "!list" to see all audio devices.
+ii. If you can't already hear anything, use "!change [audio device number]" to change audio devices.
+iii. Once done, use "!close" to shut off the app and bot. 
+
