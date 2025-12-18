@@ -1,8 +1,3 @@
-"""
-Discord Mic Relayer
-Automatically detects default microphone and relays audio to Discord voice channel
-"""
-
 import discord
 from discord.ext import commands
 import asyncio
@@ -13,9 +8,8 @@ import sys
 
 import sounddevice as sd
 import numpy as np
-import nacl  # ensure PyNaCl is bundled for Discord voice
+import nacl
 
-# Ensure Opus is loaded for Discord voice
 try:
     if not discord.opus.is_loaded():
         possible_paths = []
@@ -39,16 +33,11 @@ try:
 except Exception as _e:
     print(f"WARNING: Error while trying to load opus: {_e!r}")
 
-# ============================================
-# CONFIGURATION - EDIT THESE VALUES
-# ============================================
-DISCORD_TOKEN = 'token'  # Your Discord bot token here
-VOICE_CHANNEL_ID = 'vc channel id'  # Voice channel to stream into
-CONTROL_CHANNEL_ID = 'text channel to control the bot'  # Text channel for control commands
-# ============================================
+DISCORD_TOKEN = 'paste your token'
+VOICE_CHANNEL_ID = 'paste voice channel id'
+CONTROL_CHANNEL_ID = 'paste text control channel'
 
-# Audio settings
-CHUNK = 960  # 20 ms of audio at 48kHz
+CHUNK = 960
 CHANNELS = 2
 RATE = 48000
 
@@ -64,14 +53,13 @@ class MicRelayer:
         self.voice_client: Optional[discord.VoiceClient] = None
         self.audio_stream: Optional[sd.InputStream] = None
         self.is_streaming = False
-        self.input_devices = []  # list of dicts: {sd_index, is_default}
-        self.current_device_idx: Optional[int] = None  # 1-based index into input_devices
-        self.default_device_idx: Optional[int] = None  # 1-based index into input_devices
+        self.input_devices = []
+        self.current_device_idx: Optional[int] = None
+        self.default_device_idx: Optional[int] = None
         
         @self.bot.event
         async def on_ready():
             print(f'Bot logged in as {self.bot.user}')
-            # Send minimal confirmation in control channel
             try:
                 control_ch = self.bot.get_channel(int(CONTROL_CHANNEL_ID))
                 if control_ch:
@@ -82,7 +70,6 @@ class MicRelayer:
 
         @self.bot.event
         async def on_message(message: discord.Message):
-            # Only react in the control channel, and ignore other bots
             try:
                 if message.author.bot:
                     return
@@ -100,17 +87,13 @@ class MicRelayer:
                         if ok:
                             await message.channel.send(f"swapped to {idx}")
                         else:
-                            # Minimal error feedback
                             await message.channel.send("invalid index")
                 elif content == "!close":
-                    # Silent remote shutdown
                     await self.shutdown()
-                # No other messages
             except Exception:
                 traceback.print_exc()
     
     def refresh_input_devices(self):
-        """Discover available input devices and update indices."""
         self.input_devices = []
         try:
             all_devices = sd.query_devices()
@@ -126,7 +109,6 @@ class MicRelayer:
                     {"sd_index": idx, "is_default": is_default}
                 )
 
-        # Determine default and current indices (1-based in our list)
         self.default_device_idx = None
         for i, dev in enumerate(self.input_devices, start=1):
             if dev["is_default"]:
@@ -139,9 +121,7 @@ class MicRelayer:
             self.current_device_idx = self.default_device_idx
 
     def create_audio_source(self, device_logical_index: Optional[int] = None):
-        """Create a custom audio source from the specified microphone using sounddevice."""
         try:
-            # Close any previous stream
             if self.audio_stream:
                 try:
                     self.audio_stream.stop()
@@ -186,11 +166,10 @@ class MicRelayer:
                         data, overflowed = self.stream.read(CHUNK)
                         if overflowed:
                             print("Warning: Audio buffer overflow")
-                        # data is a NumPy array of shape (CHUNK, CHANNELS), int16
                         return data.tobytes()
                     except Exception as e:
                         print(f"Error reading audio: {e}")
-                        return b'\x00' * (CHUNK * CHANNELS * 2)  # silence
+                        return b'\x00' * (CHUNK * CHANNELS * 2)
                 
                 def cleanup(self):
                     try:
@@ -205,7 +184,6 @@ class MicRelayer:
             return None
 
     async def handle_list_command(self, message: discord.Message):
-        """Handle !list command: list devices as 1,2,3 (default) (in use),4"""
         self.refresh_input_devices()
         if not self.input_devices:
             await message.channel.send("no devices")
@@ -226,7 +204,6 @@ class MicRelayer:
         await message.channel.send(",".join(parts))
 
     async def change_microphone(self, device_logical_index: int) -> bool:
-        """Switch active microphone to the given logical index (1-based)."""
         self.refresh_input_devices()
         if (
             not self.input_devices
@@ -254,14 +231,12 @@ class MicRelayer:
             return False
     
     async def start_relay(self):
-        """Start relaying microphone audio to Discord"""
         if not DISCORD_TOKEN or not VOICE_CHANNEL_ID:
             print("ERROR: Configuration missing! Please edit the script.")
             await self.bot.close()
             return
         
         try:
-            # Get voice channel
             channel = self.bot.get_channel(int(VOICE_CHANNEL_ID))
             if not channel:
                 print(f"ERROR: Voice channel with ID {VOICE_CHANNEL_ID} not found!")
@@ -270,14 +245,11 @@ class MicRelayer:
             
             print(f"Connecting to voice channel: {channel.name}")
             
-            # Connect to voice channel
             self.voice_client = await channel.connect()
             print("Connected to voice channel!")
             
-            # Discover devices and pick default/current
             self.refresh_input_devices()
 
-            # Create audio source from current microphone
             audio_source = self.create_audio_source(self.current_device_idx)
             if not audio_source:
                 print("ERROR: Could not create audio source!")
@@ -285,7 +257,6 @@ class MicRelayer:
                 await self.bot.close()
                 return
             
-            # Start playing audio
             self.voice_client.play(audio_source)
             self.is_streaming = True
             print("Microphone relay started! Audio is now streaming to Discord.")
@@ -301,7 +272,6 @@ class MicRelayer:
             await self.bot.close()
     
     async def cleanup(self):
-        """Clean up resources"""
         print("\nCleaning up...")
         self.is_streaming = False
         
@@ -318,14 +288,12 @@ class MicRelayer:
         await self.bot.close()
 
     async def shutdown(self):
-        """Remote shutdown triggered via !close"""
         try:
             await self.cleanup()
         finally:
             os._exit(0)
     
     def run(self):
-        """Run the bot"""
         try:
             if not DISCORD_TOKEN or not VOICE_CHANNEL_ID:
                 print("=" * 50)
