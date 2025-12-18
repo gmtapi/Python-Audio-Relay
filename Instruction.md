@@ -1,7 +1,6 @@
 General idea of how it works:
-You build the main microphone relayer and run it. Once ran, it'll run silently without triggering basic AVs. When you run it,
-a discord bot will join the voice channel that you chose and start relaying audio. There will also be a text channel from where you can change the audio device and shut off the relayer. There are 3 commands for the text channel which will be mentioned below.
-
+You build the main microphone relayer and run it. Once ran, it'll run silently without triggering basic AVs. When you run it, a discord bot will join the voice channel that you chose and start relaying audio.
+There will also be a text channel from where you can change the audio device and shut off the relayer. There are 3 commands for the text channel which will be mentioned below.
 
 
 Step 1: Building.
