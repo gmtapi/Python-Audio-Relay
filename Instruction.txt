@@ -18,3 +18,8 @@ i. In your text control channel, use "!list" to see all audio devices.
 ii. If you can't already hear anything, use "!change [audio device number]" to change audio devices.
 iii. Once done, use "!close" to shut off the app and bot. 
 
+Details:
+
+i. Relays audio via voice channel in discord server.
+ii. App can be controlled via text channel in discord server.
+iii. You can change audio device, see list of all audio device, close the app through discord. 
